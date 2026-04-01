@@ -1,0 +1,2 @@
+# elektroniikka_ppg
+Elektroniikan sovellusprojektissa suunnittelemme fotopletysmografia periaatteella sydämmensykettä seuraavan laitteen. Tässä repositoriossa säilytämme siihen liittyvät koodit.
