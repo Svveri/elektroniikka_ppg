@@ -1,14 +1,28 @@
-// MSP1803 TFT Display — Vertical + Hospital UI + Heart Pulse
 
+#include <Arduino.h>
+#include "monitor.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <SPI.h>
 #include <math.h>
 
+// ===== FUNCTION PROTOTYPES (REQUIRED IN .CPP) =====
+int ppgX(float t);
+void drawGraph();
+void drawUI();
+void updateNumbers();
+void drawHeart();
+
 // PINS
-#define TFT_CS 8 // DIGITAL PIN 8
-#define TFT_RST 9 // DIGITAL PIN 9
-#define TFT_DC 10 // DIGITAL PIN 10
+// MONITORS 1 -> PIN VCC 3.3
+// MONITORS 2 -> PIN GND
+#define TFT_CS 8 // CS MONITOR PIN -> DIGITAL PIN 8 (RESISTORS)
+#define TFT_RST 9 // RESET PIN MONITOR -> DIGITAL PIN 9 (RESISTORS)
+#define TFT_DC 10 // A0 MONITOR PIN -> DIGITAL PIN 10 (RESISTORS)
+// MONITOR SDA PIN -> D11 (RESISTORS)
+// MONITOR SCK PIN -> D13 PIN (RESISTORS)
+// MONITOR LED -> 3.3V VIA 150 ohm
+
 
 // CREATE TFT OBJECT
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
@@ -43,6 +57,7 @@ float simTime = 0.0; // SIMULATION TIME FOR WAVEFORM
 float simBPM = SIM_BPM; // CURRENT HEART RATE 
 
 int waveBuf[GRAPH_H]; // BUFFER FOR HORIZONTAL PIXELS
+int preWaveBuf[GRAPH_H]; // PREVIOUS FRAME
 
 long lastUpdate = 0; // TIMESTAMP OF THE LAST WAVEFORM UPDATE
 long lastUIUpdate = 0; // TIMESTAMP OF LAST SLOW UI UPDATE
@@ -55,9 +70,8 @@ long lastUIUpdate = 0; // TIMESTAMP OF LAST SLOW UI UPDATE
 bool heartOn = false; // TURNS TRUE WHEN HEART IS RED
 int beatFrames = 0; // FRAME COUNTER TO CONTROL HEARTBEAT TIMING 
 
-// SETUP
-void setup() {
-  Serial.begin(115200);
+// initialize
+void Monitor_init() {
 
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(3); // DISPLAY ROTATION
@@ -66,6 +80,7 @@ void setup() {
   for (int i = 0; i < GRAPH_H; i++) {
     float t = (float)i / 50.0; // init time step
     waveBuf[i] = ppgX(t); // fill buffer with PPG values
+    preWaveBuf[i] = waveBuf[i];
   }
 
   simTime = (float)GRAPH_H / 50.0; // init sim time
@@ -73,8 +88,8 @@ void setup() {
   drawUI(); // DRAWS INIT UI
 }
 
-// LOOP
-void loop() {
+// monitor updating
+void Monitor_update() {
   long now = millis(); // TIME IN MILLISECONDS
 
   // FAST WAVEFORM 
@@ -144,8 +159,14 @@ int ppgX(float t) {
 }
 
 // GRAPH
-void drawGraph() {
-  tft.fillRect(GRAPH_X, GRAPH_Y, GRAPH_W, GRAPH_H, C_BLACK); // CLEAR GRAPH ARRAY
+/*void drawGraph() {
+
+  for (int i = 1; i < GRAPH_H; i++){
+    tft.drawLine(preWaveBuf[i - 1], GRAPH_Y + i - 1, 
+    preWaveBuf[i], GRAPH_Y + i, C_BLACK);
+  } 
+  tft.drawPixel(preWaveBuf[GRAPH_H - 1], GRAPH_Y + GRAPH_H - 1, C_RED);
+  // Erase previous line and dot
 
   int midX = GRAPH_X + GRAPH_W / 2;
   //DRAW CERTICAL GRID DOTS
@@ -167,7 +188,45 @@ void drawGraph() {
                 GRAPH_Y + GRAPH_H - 1,
                 C_WHITE);
 }
-
+*/
+void drawGraph() {
+  // ERASE PREVIOUS LINES (COLOUR THEM BLACK)
+  for (int i = 1; i < GRAPH_H; i++) {
+    tft.drawLine(
+      preWaveBuf[i - 1], GRAPH_Y + i - 1,
+      preWaveBuf[i],     GRAPH_Y + i,
+      C_BLACK
+    );
+  }
+  // Erase previous end dot
+  tft.drawPixel(preWaveBuf[GRAPH_H - 1],
+                GRAPH_Y + GRAPH_H - 1,
+                C_BLACK);
+ 
+  // Redraw vertical centre grid line (erasing removes it)
+  int midX = GRAPH_X + GRAPH_W / 2;
+  for (int y = GRAPH_Y; y < GRAPH_Y + GRAPH_H; y += 3) {
+    tft.drawPixel(midX, y, C_DARKGREY);
+  }
+ 
+  // Draw new waveform lines
+  for (int i = 1; i < GRAPH_H; i++) {
+    tft.drawLine(
+      waveBuf[i - 1], GRAPH_Y + i - 1,
+      waveBuf[i],     GRAPH_Y + i,
+      C_RED
+    );
+  }
+ 
+  // White dot at leading edge
+  tft.drawPixel(waveBuf[GRAPH_H - 1],
+                GRAPH_Y + GRAPH_H - 1,
+                C_WHITE);
+ 
+  // Save current buffer as previous for next frame
+  memcpy(preWaveBuf, waveBuf, sizeof(waveBuf));
+}
+ 
 // UI
 void drawUI() {
   tft.fillScreen(C_BLACK);
