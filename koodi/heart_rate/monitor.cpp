@@ -49,12 +49,12 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 #define GRAPH_RIGHT (GRAPH_X + GRAPH_W) // RIGHT EDGES X CORDINATE 
 
 // SIMULATION (SIM)
-#define SIM_BPM 72.0 //72 BPM SIMULATED HEARTRATE
+// #define SIM_BPM 72.0 //72 BPM SIMULATED HEARTRATE // now obsolete because we dont simulate the bpm
 #define SCROLL_MS 200 // WAVEFORM UPDATE SPEED (ms)
 
 // STATE
 float simTime = 0.0; // SIMULATION TIME FOR WAVEFORM
-float simBPM = SIM_BPM; // CURRENT HEART RATE 
+float simBPM = 0; // this had the SIM_BPM value hard coded (= SIM_BPM;)
 
 int waveBuf[GRAPH_H]; // BUFFER FOR HORIZONTAL PIXELS
 int preWaveBuf[GRAPH_H]; // PREVIOUS FRAME
@@ -89,10 +89,10 @@ void Monitor_init() {
 }
 
 // monitor updating
-void Monitor_update() {
+void Monitor_update(float RR) {
   long now = millis(); // TIME IN MILLISECONDS
-
-  // FAST WAVEFORM 
+  simBPM = RR;
+  // FAST WAVEFORM
   if (now - lastUpdate >= SCROLL_MS) {
     lastUpdate = now;
 
@@ -112,12 +112,12 @@ void Monitor_update() {
     int beatPeriod = (int)(50.0 * 60.0 / simBPM); // FRAMES PER BEAT
 
     if (beatFrames >= beatPeriod) {
-      beatFrames = 0; //RESET FRAME COUNTER
+      beatFrames = 0; // RESET FRAME COUNTER
       heartOn = !heartOn; // TOGGLE HEART SYMBOL
       drawHeart(); // REDRAW HEART
 
       // BPM UPDATES UPON BEAT
-      tft.fillRect(70, 56, 60, 10, C_BLACK); //CLEAR PREVIOUS BPM
+      tft.fillRect(70, 56, 60, 10, C_BLACK); // CLEAR PREVIOUS BPM
       tft.setTextColor(C_CYAN);
       tft.setCursor(70, 56);
       tft.print((int)simBPM);
@@ -143,7 +143,7 @@ void Monitor_update() {
 // GENERATES PPG (SIMULATED HEARTWAVE REPLACE THIS!!!!)
 int ppgX(float t) {
 // GENERATION STARTS HERE
-  float phase = fmod(t * (simBPM / 60.0) * TWO_PI, TWO_PI);
+/*  float phase = fmod(t * (simBPM / 60.0) * TWO_PI, TWO_PI);
 
   float systolic = exp(-pow((phase - 0.9) / 0.28, 2));
   float dicrotic = exp(-pow((phase - 1.85) / 0.22, 2)) * 0.28;
@@ -152,8 +152,9 @@ int ppgX(float t) {
   float sig = systolic + dicrotic + diastolic;
 
   sig += (float)(random(-2, 3)) / 120.0;
-  sig = constrain(sig, 0.0, 1.0);
+  sig = constrain(sig, 0.0, 1.0); */ // obsolete because we dont simulate the BPM
 // ENDS HERE
+  float sig = 0; 
   int px = GRAPH_X + 2 + (int)(sig * (GRAPH_W - 6));
   return constrain(px, GRAPH_X + 1, GRAPH_RIGHT - 1);
 }
@@ -249,7 +250,7 @@ void drawUI() {
 
   // GRAPH BORDER
   tft.drawRect(GRAPH_X - 1, GRAPH_Y - 1, GRAPH_W + 2, GRAPH_H + 2, C_CYAN);
-  simBPM = SIM_BPM;  // initial BPM
+  // here was simBPM = SIM_BPM;
   tft.fillRect(70, 56, 60, 10, C_BLACK);
   tft.setTextColor(C_CYAN);
   tft.setCursor(70, 56);
@@ -263,7 +264,7 @@ void drawUI() {
 
 // UPDATE VALUES 
 void updateNumbers() {
-  simBPM = SIM_BPM + (float)(random(-2, 3)) * 0.5;
+  // simBPM = SIM_BPM + (float)(random(-2, 3)) * 0.5;
 
   // HR BEEN MOVED TO BE UPDATED WHENEVER THERES A NEED FOR TI
   // HR

@@ -63,5 +63,5 @@ void loop() {
 
   delay(2);  // High sampling rate (~500 Hz)
 
-  Monitor_update();
+ Monitor_update(lastBPM);
 }
