@@ -49,7 +49,6 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 #define GRAPH_RIGHT (GRAPH_X + GRAPH_W) // RIGHT EDGES X CORDINATE 
 
 // SIMULATION (SIM)
-// #define SIM_BPM 72.0 //72 BPM SIMULATED HEARTRATE // now obsolete because we dont simulate the bpm
 #define SCROLL_MS 200 // WAVEFORM UPDATE SPEED (ms)
 
 // STATE
@@ -89,7 +88,7 @@ void Monitor_init() {
 }
 
 // monitor updating
-void Monitor_update(float RR) {
+void Monitor_update(float RR) { // float RR is the value that we want to show on the screen as BPM
   long now = millis(); // TIME IN MILLISECONDS
   simBPM = RR;
   // FAST WAVEFORM

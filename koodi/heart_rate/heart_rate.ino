@@ -49,8 +49,8 @@ void loop() {
     lastBPM = computeBPM(); // integroi RR intervaalit ja muuttaa Beats Per Minutes- muotoon.
   }
 }
-  //Serial.print("Signal: ");
-  //Serial.print(signalValue);
+  Serial.print("Signal: ");
+  Serial.print(signalValue);
 
   Serial.print(" | BPM: ");
   if (lastBPM > 0) {
