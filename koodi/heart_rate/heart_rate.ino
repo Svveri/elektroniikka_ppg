@@ -10,6 +10,7 @@ DFRobot_Heartrate heartrate(ANALOG_MODE); // alustetaan libraryn metodit käsitt
 const int sensorPin = A0; // asetetaan A0 portti sensorPin muuttujaan
 int lastBPM = 0; // Beats Per Minute arvon säilyttävä muuttuja 
 int signalValue = 0;
+float signal = 0; 
 
 // Muuttujat RR-intervalli funktiota varten
 #define RR_WINDOW 5 // RR intervallin keskiarvon laskemiseen tarkoitettu ikkunan koko
@@ -37,7 +38,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   signalValue = analogRead(heartPin); // luetaan A0 portista signaali
-
+  signal = signalValue/ 1023.0;
   int bpm = heartrate.getValue(signalValue); // käytetään kirjaston metodia, 
 
   if (bpm > 0) {   // Jos bpm enemmän kuin 0 säilytetään validi lukema
@@ -65,5 +66,5 @@ void loop() {
 
   delay(2);  // High sampling rate (~500 Hz)
 
-  Monitor_update(lastBPM);
+  Monitor_update(lastBPM, signalValue);
 }
