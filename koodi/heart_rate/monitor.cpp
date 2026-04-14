@@ -1,6 +1,6 @@
-
 #include <Arduino.h>
 #include "monitor.h"
+#include "source.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <SPI.h>
@@ -8,6 +8,7 @@
 
 // ===== FUNCTION PROTOTYPES (REQUIRED IN .CPP) =====
 int ppgX(float t);
+int ppgX3(float bpm);
 void drawGraph();
 void drawUI();
 void updateNumbers();
@@ -40,6 +41,16 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 #define C_CYAN 0x07FF
 #define C_DARKGREY 0x4208
 #define C_LIGHTGREY 0xC618
+
+// SYNTEETTINEN PPG-AALTO
+// Yksi sydänlyönti (arvot 0–100 % leveydestä)
+const uint8_t PPG_WAVE[] = {
+  50, 52, 55, 60, 68, 80, 95, 85, 70, 60,
+  55, 53, 52, 54, 60, 58, 55, 52, 50
+};
+
+// Taulukon pituus
+const int PPG_LEN = sizeof(PPG_WAVE) / sizeof(PPG_WAVE[0]);
 
 // GRAPH
 #define GRAPH_X 1 // X START ON GRAPH
@@ -78,7 +89,8 @@ void Monitor_init() {
 
   for (int i = 0; i < GRAPH_H; i++) {
     float t = (float)i / 50.0; // init time step
-    waveBuf[i] = ppgX(t); // fill buffer with PPG values
+    int signal_value = get_signal(); // getteri signaalin hakemiseksi
+    waveBuf[i] = ppgX3(signal_value); // fill buffer with PPG values, kutsutaan itse tekemää uutta funktiota
     preWaveBuf[i] = waveBuf[i];
   }
 
@@ -94,9 +106,8 @@ void Monitor_update(float RR) { // float RR is the value that we want to show on
   // FAST WAVEFORM
   if (now - lastUpdate >= SCROLL_MS) {
     lastUpdate = now;
-
-    simTime += 1.0 / 50.0; // INCREMENT SIMULATION TIME
-    int newX = ppgX(simTime); // COMPUTE NEXT WAVEFORM X CORDINATE
+    int signal_real = get_signal();
+    int newX = ppgX3(simBPM); // COMPUTE NEXT WAVEFORM X CORDINATE
 
     //SHIFT WAVEFORM BUFFER BY 1 PIXEL
     for (int i = 0; i < GRAPH_H - 1; i++) {
@@ -153,8 +164,39 @@ int ppgX(float t) {
   sig += (float)(random(-2, 3)) / 120.0;
   sig = constrain(sig, 0.0, 1.0); */ // obsolete because we dont simulate the BPM
 // ENDS HERE
-  float sig = 0; 
+  float sig = constrain(t, 0.0, 1.0); 
   int px = GRAPH_X + 2 + (int)(sig * (GRAPH_W - 6));
+  return constrain(px, GRAPH_X + 1, GRAPH_RIGHT - 1);
+}
+
+// USES PREDETERMINED DRAWING AND BPM GIVES THE RHYTHM
+int ppgX3(float bpm) {
+
+  if (bpm < 30) bpm = 30;
+  if (bpm > 200) bpm = 200;
+
+  // Yhden sydänlyönnin kokonaiskesto
+  float beatPeriodMs = 60000.0 / bpm;
+
+  unsigned long now = millis();
+  static unsigned long beatStart = 0;
+
+  // Kun lyönti on valmis, aloitetaan uusi
+  if (now - beatStart >= beatPeriodMs) {
+    beatStart += beatPeriodMs;
+  }
+
+  // Etenemä 0.0 – 1.0 yhden lyönnin sisällä
+  float progress = (now - beatStart) / beatPeriodMs;
+  if (progress > 1.0) progress = 1.0;
+
+  // Taulukkoindeksi
+  int phase = (int)(progress * (PPG_LEN - 1));
+
+  // Muodon arvo → X-koordinaatti
+  float norm = PPG_WAVE[phase] / 100.0;
+  int px = GRAPH_X + 2 + (int)(norm * (GRAPH_W - 6));
+
   return constrain(px, GRAPH_X + 1, GRAPH_RIGHT - 1);
 }
 
@@ -258,10 +300,9 @@ void drawUI() {
   
   updateNumbers(); // DRAW INITIAL SIGNAL AND CHANNEL VALUES
   drawHeart(); // DRAW INITIAL HEART SYMBOL
-  
 }
 
-// UPDATE VALUES 
+// UPDATE VALUES
 void updateNumbers() {
   // simBPM = SIM_BPM + (float)(random(-2, 3)) * 0.5;
 
