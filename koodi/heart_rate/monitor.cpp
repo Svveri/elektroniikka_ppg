@@ -7,7 +7,7 @@
 #include <math.h>
 
 // ===== FUNCTION PROTOTYPES (REQUIRED IN .CPP) =====
-int ppgX(float t);
+int ppgX(float externalsig);
 int ppgX3(float bpm);
 void drawGraph();
 void drawUI();
@@ -100,14 +100,14 @@ void Monitor_init() {
 }
 
 // monitor updating
-void Monitor_update(float RR) { // float RR is the value that we want to show on the screen as BPM
+void Monitor_update(float RR, float signal) { // float RR is the value that we want to show on the screen as BPM
   long now = millis(); // TIME IN MILLISECONDS
   simBPM = RR;
   // FAST WAVEFORM
   if (now - lastUpdate >= SCROLL_MS) {
     lastUpdate = now;
     int signal_real = get_signal();
-    int newX = ppgX3(simBPM); // COMPUTE NEXT WAVEFORM X CORDINATE
+    int newX = ppgX(signal); // COMPUTE NEXT WAVEFORM X CORDINATE
 
     //SHIFT WAVEFORM BUFFER BY 1 PIXEL
     for (int i = 0; i < GRAPH_H - 1; i++) {
@@ -127,11 +127,11 @@ void Monitor_update(float RR) { // float RR is the value that we want to show on
       drawHeart(); // REDRAW HEART
 
       // BPM UPDATES UPON BEAT
-      tft.fillRect(70, 56, 60, 10, C_BLACK); // CLEAR PREVIOUS BPM
-      tft.setTextColor(C_CYAN);
-      tft.setCursor(70, 56);
-      tft.print((int)simBPM);
-      tft.print(" BPM");
+      //tft.fillRect(70, 56, 60, 10, C_BLACK); // CLEAR PREVIOUS BPM
+      //tft.setTextColor(C_CYAN);
+      //tft.setCursor(70, 56);
+      //tft.print((int)simBPM);
+      //tft.print(" BPM");
     }
   }
 
@@ -151,7 +151,7 @@ void Monitor_update(float RR) { // float RR is the value that we want to show on
 }
 
 // GENERATES PPG (SIMULATED HEARTWAVE REPLACE THIS!!!!)
-int ppgX(float t) {
+int ppgX(float externalsig) {
 // GENERATION STARTS HERE
 /*  float phase = fmod(t * (simBPM / 60.0) * TWO_PI, TWO_PI);
 
@@ -164,7 +164,7 @@ int ppgX(float t) {
   sig += (float)(random(-2, 3)) / 120.0;
   sig = constrain(sig, 0.0, 1.0); */ // obsolete because we dont simulate the BPM
 // ENDS HERE
-  float sig = constrain(t, 0.0, 1.0); 
+  float sig = constrain(externalsig, 0.0, 1.0); 
   int px = GRAPH_X + 2 + (int)(sig * (GRAPH_W - 6));
   return constrain(px, GRAPH_X + 1, GRAPH_RIGHT - 1);
 }
@@ -308,12 +308,12 @@ void updateNumbers() {
 
   // HR BEEN MOVED TO BE UPDATED WHENEVER THERES A NEED FOR TI
   // HR
-  /* 
+  
   tft.fillRect(70, 56, 60, 10, C_BLACK);
   tft.setTextColor(C_CYAN);
   tft.setCursor(70, 56); 
   tft.print((int)simBPM);
-  tft.print(" BPM");*/
+  tft.print(" BPM");
 
   // SIGNAL
   tft.fillRect(60, 92, 50, 10, C_BLACK);

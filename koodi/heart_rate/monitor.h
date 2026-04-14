@@ -8,6 +8,6 @@
 void Monitor_init();
 
 // Update everything (call inside loop)
-void Monitor_update(float RR);
+void Monitor_update(float RR, float signal);
 
 #endif
