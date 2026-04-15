@@ -13,20 +13,10 @@ int signalValue = 0;
 float signal = 0; 
 
 // Muuttujat RR-intervalli funktiota varten
-#define RR_WINDOW 5 // RR intervallin keskiarvon laskemiseen tarkoitettu ikkunan koko
 unsigned long rrBuffer[RR_WINDOW]; // tämä on se itse bufferi [array], joka säilyttää millisekunteina RR piikkien intervallin; esim rrBuffer = [995, 1000, 992, 1003, 1005]
 int rrIndex = 0; // tämä indexi määrää mihin kohtaan rrBufferissa kirjoitetaan tällä hetkellä
 int rrCount = 0; // kertoo kuinka monta validia tulosta on säilytyksessä, estää virhetilanteet kuten keskiarvon laskun nollalla
 unsigned long lastBeatMillis = 0; // ajastusta varten muuttuja, tällä nähdään RR piikkien välillä oleva aika
-// RR-intervalli integrointi funktio, tasoittaa pulssin muodostuksen, ei pompi holtittomasti edestakaisin
-int computeBPM() {
-  unsigned long sum = 0; // Tähän summataan RR tulokset, joista keskiarvo lasketaan
-  for (int i = 0; i < rrCount; i++) {
-    sum += rrBuffer[i]; // summataan bufferissa olevat luvut
-  }
-  unsigned long avgRR = sum / rrCount; // jaetaan summaus lukujen määrällä = saadaan keskiarvo
-  return 60000 / avgRR; // Muunnetaan RR -> Beats Per Minute
-}
 
 
 void setup() {
@@ -38,9 +28,9 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   signalValue = analogRead(heartPin); // luetaan A0 portista signaali
-  signal = signalValue/ 1023.0;
+  signal = signalValue / 1023.0;
   int bpm = heartrate.getValue(signalValue); // käytetään kirjaston metodia, 
-
+/*
   if (bpm > 0) {   // Jos bpm enemmän kuin 0 säilytetään validi lukema
   unsigned long now = millis(); // aloitetaan ajanotto
   unsigned long rr = now - lastBeatMillis; // laskee ajan joka on kulunut viime sykähdyksestä
@@ -50,8 +40,10 @@ void loop() {
     rrIndex = (rrIndex + 1) % RR_WINDOW; // varmistetaan että pysytään RR ikkunan sisäpuolella
     if (rrCount < RR_WINDOW) rrCount++; // tarkastetaan onko RR näytteitä sen verran mitä ikkuna sallii
     lastBPM = computeBPM(); // integroi RR intervaalit ja muuttaa Beats Per Minutes- muotoon
-  }
-}
+  } 
+}*/
+  computeRR(bpm);
+  
   Serial.print("Signal: ");
   Serial.print(signalValue);
 
