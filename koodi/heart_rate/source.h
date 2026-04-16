@@ -6,6 +6,6 @@ extern int computeBPM();
 
 int get_signal();
 
-int computeRR(int bpm);
+void computeRR(int bpm);
 
 #endif

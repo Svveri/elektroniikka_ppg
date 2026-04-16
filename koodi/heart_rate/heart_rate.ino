@@ -10,19 +10,19 @@ DFRobot_Heartrate heartrate(ANALOG_MODE); // alustetaan libraryn metodit käsitt
 const int sensorPin = A0; // asetetaan A0 portti sensorPin muuttujaan
 int lastBPM = 0; // Beats Per Minute arvon säilyttävä muuttuja 
 int signalValue = 0;
-float signal = 0; 
+float signal = 0;
 
 // Muuttujat RR-intervalli funktiota varten
-unsigned long rrBuffer[RR_WINDOW]; // tämä on se itse bufferi [array], joka säilyttää millisekunteina RR piikkien intervallin; esim rrBuffer = [995, 1000, 992, 1003, 1005]
+/*unsigned long rrBuffer[RR_WINDOW]; // tämä on se itse bufferi [array], joka säilyttää millisekunteina RR piikkien intervallin; esim rrBuffer = [995, 1000, 992, 1003, 1005]
 int rrIndex = 0; // tämä indexi määrää mihin kohtaan rrBufferissa kirjoitetaan tällä hetkellä
 int rrCount = 0; // kertoo kuinka monta validia tulosta on säilytyksessä, estää virhetilanteet kuten keskiarvon laskun nollalla
 unsigned long lastBeatMillis = 0; // ajastusta varten muuttuja, tällä nähdään RR piikkien välillä oleva aika
-
+*/
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
-  Monitor_init();
+  Monitor_init(); // näytön alustus
 }
 
 void loop() {
@@ -30,20 +30,9 @@ void loop() {
   signalValue = analogRead(heartPin); // luetaan A0 portista signaali
   signal = signalValue / 1023.0;
   int bpm = heartrate.getValue(signalValue); // käytetään kirjaston metodia, 
-/*
-  if (bpm > 0) {   // Jos bpm enemmän kuin 0 säilytetään validi lukema
-  unsigned long now = millis(); // aloitetaan ajanotto
-  unsigned long rr = now - lastBeatMillis; // laskee ajan joka on kulunut viime sykähdyksestä
-  lastBeatMillis = now; // ---
-  if (rr > 300 && rr < 2000) {   // jos intervalli on oikeansuhteinen, tämä suodattaa jotkin signaalin häröilyt pois, eli jos RR alle 300, kyseessä virhe. Jos RR yli 2000, tulos ei validi
-    rrBuffer[rrIndex] = rr; // lisätään bufferiin
-    rrIndex = (rrIndex + 1) % RR_WINDOW; // varmistetaan että pysytään RR ikkunan sisäpuolella
-    if (rrCount < RR_WINDOW) rrCount++; // tarkastetaan onko RR näytteitä sen verran mitä ikkuna sallii
-    lastBPM = computeBPM(); // integroi RR intervaalit ja muuttaa Beats Per Minutes- muotoon
-  } 
-}*/
-  computeRR(bpm);
-  
+
+  computeRR(bpm); // kutsutaan tämän funktion sisällä myös computeBPM();
+  /**
   Serial.print("Signal: ");
   Serial.print(signalValue);
 
@@ -55,8 +44,8 @@ void loop() {
   }
 
   Serial.println();
-
-  delay(2);  // High sampling rate (~500 Hz)
+*/
+  //delay(2);  // High sampling rate (~500 Hz)
 
   Monitor_update(lastBPM, signalValue);
 }
