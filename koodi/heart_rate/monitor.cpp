@@ -89,7 +89,7 @@ void Monitor_init() {
 
   for (int i = 0; i < GRAPH_H; i++) {
     float t = (float)i / 50.0; // init time step
-    int signal_value = get_signal(); // getteri signaalin hakemiseksi
+    int signal_value = 0;
     waveBuf[i] = ppgX3(signal_value); // fill buffer with PPG values, kutsutaan itse tekemää uutta funktiota
     preWaveBuf[i] = waveBuf[i];
   }
@@ -106,7 +106,6 @@ void Monitor_update(float RR, float signal) { // float RR is the value that we w
   // FAST WAVEFORM
   if (now - lastUpdate >= SCROLL_MS) {
     lastUpdate = now;
-    int signal_real = get_signal();
     int newX = ppgX(signal); // COMPUTE NEXT WAVEFORM X CORDINATE
 
     //SHIFT WAVEFORM BUFFER BY 1 PIXEL
@@ -171,9 +170,6 @@ int ppgX(float externalsig) {
 
 // USES PREDETERMINED DRAWING AND BPM GIVES THE RHYTHM
 int ppgX3(float bpm) {
-
-  if (bpm < 30) bpm = 30;
-  if (bpm > 200) bpm = 200;
 
   // Yhden sydänlyönnin kokonaiskesto
   float beatPeriodMs = 60000.0 / bpm;
