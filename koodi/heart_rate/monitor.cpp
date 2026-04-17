@@ -149,49 +149,9 @@ void Monitor_update(float RR, float signal) { // float RR is the value that we w
 }
 
 // GENERATES PPG (SIMULATED HEARTWAVE REPLACE THIS!!!!)
-int ppgX(float externalsig) {
-// GENERATION STARTS HERE
-/*  float phase = fmod(t * (simBPM / 60.0) * TWO_PI, TWO_PI);
-
-  float systolic = exp(-pow((phase - 0.9) / 0.28, 2));
-  float dicrotic = exp(-pow((phase - 1.85) / 0.22, 2)) * 0.28;
-  float diastolic = exp(-pow((phase - 3.8) / 1.3, 2)) * 0.12;
-
-  float sig = systolic + dicrotic + diastolic;
-
-  sig += (float)(random(-2, 3)) / 120.0;
-  sig = constrain(sig, 0.0, 1.0); */ // obsolete because we dont simulate the BPM
-// ENDS HERE
-  float sig = constrain(externalsig, 0.0, 1.0); 
+int ppgX(float signal) {
+  float sig = constrain(signal, 0.0, 1.0); 
   int px = GRAPH_X + 2 + (int)(sig * (GRAPH_W - 6));
-  return constrain(px, GRAPH_X + 1, GRAPH_RIGHT - 1);
-}
-
-// USES PREDETERMINED DRAWING AND BPM GIVES THE RHYTHM
-int ppgX3(float bpm) {
-
-  // Yhden sydänlyönnin kokonaiskesto
-  float beatPeriodMs = 60000.0 / bpm;
-
-  unsigned long now = millis();
-  static unsigned long beatStart = 0;
-
-  // Kun lyönti on valmis, aloitetaan uusi
-  if (now - beatStart >= beatPeriodMs) {
-    beatStart += beatPeriodMs;
-  }
-
-  // Etenemä 0.0 – 1.0 yhden lyönnin sisällä
-  float progress = (now - beatStart) / beatPeriodMs;
-  if (progress > 1.0) progress = 1.0;
-
-  // Taulukkoindeksi
-  int phase = (int)(progress * (PPG_LEN - 1));
-
-  // Muodon arvo → X-koordinaatti
-  float norm = PPG_WAVE[phase] / 100.0;
-  int px = GRAPH_X + 2 + (int)(norm * (GRAPH_W - 6));
-
   return constrain(px, GRAPH_X + 1, GRAPH_RIGHT - 1);
 }
 
