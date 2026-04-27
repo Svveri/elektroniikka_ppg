@@ -81,7 +81,14 @@ int beatFrames = 0; // FRAME COUNTER TO CONTROL HEARTBEAT TIMING
 
 // initialize
 void Monitor_init() {
+  delay(300); // severin muutos
 
+  SPI_begin();
+  SPI_beginTransaction(SPISettings(
+  1000000
+  MSBFIRST,
+  SPI_MODE0
+  ));
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(3); // DISPLAY ROTATION
   tft.fillScreen(C_BLACK); //CLEAR SCREEN
